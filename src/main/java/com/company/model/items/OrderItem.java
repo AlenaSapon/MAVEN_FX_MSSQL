@@ -1,35 +1,45 @@
-package com.company.model;
+package com.company.model.items;
 
+import com.company.GUI.App;
+import com.company.GUI.editing.OrderItemEditController;
+import com.company.dao.edao.OrderDaoImpl;
+import com.company.model.entity.Entity;
+import com.company.model.entity.Order;
 import javafx.beans.property.*;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
+import javafx.scene.layout.HBox;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.sql.SQLException;
+import java.util.Optional;
 import java.util.Scanner;
 
-public class OrderItem {
+
+public class OrderItem extends EntityItem<Integer> {
+
+
     private int syntCode;
     private final IntegerProperty orderNum;
     private final StringProperty supplier;
-    private final ObjectProperty<Date> orderDate;
+    private final ObjectProperty<java.sql.Date> orderDate;
     private final IntegerProperty staffCode;
     private final ObjectProperty<BigDecimal> amount;
 
+
     public OrderItem(Order order){
-        syntCode= order.getSyntCode();
+        this.syntCode=order.getSyntCode();
         orderNum=new SimpleIntegerProperty(order.getOrderNum());
-        supplier=new SimpleStringProperty(order.getSupplier());
-        orderDate =new SimpleObjectProperty<>(order.getDate());
+        supplier=new SimpleStringProperty(Optional.ofNullable(order.getSupplier()).orElse("None"));
+        orderDate =new SimpleObjectProperty<>(Optional.ofNullable(order.getDate()).orElse(new Date(0)));
         staffCode=new SimpleIntegerProperty(order.getStaffCode());
-        amount=new SimpleObjectProperty<>(order.getAmount());
+        amount=new SimpleObjectProperty<>(Optional.ofNullable(order.getAmount()).orElse(new BigDecimal("0.00")));
+        super.entityStatus=order.getEntityStatus();
     }
 
-    public int getSyntCode() {
-        return syntCode;
-    }
 
-    private void setSyntCode(int syntCode) {
-        this.syntCode = syntCode;
-    }
 
     public Integer getOrderNum() {
         return orderNum.get();
@@ -53,7 +63,7 @@ public class OrderItem {
         this.supplier.set(supplier);
     }
 
-    public Date getOrderDate() {
+    public java.sql.Date getOrderDate() {
         return orderDate.get();
     }
 
@@ -89,15 +99,46 @@ public class OrderItem {
         }
     }
 
-    public Entity<Integer> getEntity(){
-        Order order =new Order();
+    @Override
+    public void performOperation() {
+        Order order = new Order();
         order.setSyntCode(syntCode);
-        order.setOrderNum(orderNum.get());
-        order.setSupplier(supplier.get());
-        order.setDate(orderDate.get());
-        order.setStaffCode(staffCode.get());
-        order.setAmount(amount.get());
-        return order;
+        order.setOrderNum(getOrderNum());
+        order.setSupplier(getSupplier());
+        order.setDate(getOrderDate());
+        order.setStaffCode(getStaffCode());
+        order.setAmount(getAmount());
+        order.setEntityStatus(entityStatus);
+        try {
+            switch (order.getEntityStatus()) {
+                case INSERT -> new OrderDaoImpl().create(order);
+                case DELETE -> new OrderDaoImpl().deleteWithDescription(order.getKey());
+                case UPDATE -> new OrderDaoImpl().update(order);
+            }
+        } catch (SQLException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, e.getMessage());
+            alert.showAndWait();
+        }
+
     }
 
+    public HBox getEditWindow(Runnable runnable)  {
+        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("orderItemEdit.fxml"));
+        OrderItemEditController controller=new OrderItemEditController();
+        controller.setItem(this,runnable);
+        fxmlLoader.setController(controller);
+        HBox hBox= null;
+        try {
+            hBox = fxmlLoader.load();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return hBox;
+    }
+
+
+    @Override
+    public Integer getKey() {
+        return syntCode;
+    }
 }

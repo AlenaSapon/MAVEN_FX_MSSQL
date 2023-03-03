@@ -15,26 +15,30 @@
                 <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
         </padding>
         <VBox>
-                <Label text="Order number"/>
-                <TextField fx:id="orderNumber"/>
+                <Label text="Inner code"/>
+                <ComboBox fx:id="innerCode"/>
         </VBox>
         <VBox>
-                <Label text="Supplier"/>
-                <TextField fx:id="supplier"/>
+                <Label text="Vendor code"/>
+                <TextField fx:id="vendCode"/>
         </VBox>
         <VBox>
-                <Label text="Order date"/>
-                <TextField fx:id="orderDate"/>
+                <Label text="Supply description"/>
+                <TextField fx:id="supplyDesc"/>
         </VBox>
         <VBox>
-                <Label text="Staff code"/>
-                <ComboBox fx:id="staffCode"/>
+                <Label text="Price"/>
+                <TextField fx:id="price"/>
+        </VBox>
+        <VBox>
+                <Label text="Quantity"/>
+                <TextField fx:id="qty"/>
         </VBox>
         <VBox>
                 <Label text="Amount"/>
                 <TextField fx:id="amount"/>
         </VBox>
-        <Button text="Submit" fx:id="submitButton"></Button>
+        <Button text="Submit" fx:id="submitButton"/>
 
 
 </HBox >

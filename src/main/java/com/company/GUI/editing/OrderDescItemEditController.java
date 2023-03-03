@@ -1,11 +1,14 @@
 package com.company.GUI.editing;
 
 
+import com.company.dao.edao.SupplyDaoImpl;
+import com.company.model.entity.Supply;
+import com.company.model.items.OrderDescItem;
 import com.company.model.items.OrderItem;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
@@ -15,42 +18,56 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-public class OrderItemEditController implements Initializable {
-    public TextField orderNumber;
-    public TextField supplier;
-    public TextField orderDate;
-    public ComboBox<String> staffCode;
+public class OrderDescItemEditController implements Initializable {
+
+    public ComboBox<Supply.InnerCodeDesc> innerCode;
+    public TextField vendCode;
+    public TextField supplyDesc;
+    public TextField price;
+    public TextField qty;
+
     public TextField amount;
     @FXML
     private Button submitButton;
 
     public Runnable runnable;
-    private OrderItem orderItem;
+    private OrderDescItem orderDescItem;
 
-    public void setItem(OrderItem orderItem, Runnable runnable){
-        this.orderItem=orderItem;
+    public void setItem(OrderDescItem orderDescItem, Runnable runnable){
+        this.orderDescItem=orderDescItem;
         this.runnable=runnable;
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        orderNumber.setText(String.valueOf(orderItem.getOrderNum()));
-        supplier.setText(orderItem.getSupplier());
-        orderDate.setText(orderItem.getOrderDate().toString());
-        staffCode.setItems(FXCollections.observableArrayList(String.valueOf(orderItem.getStaffCode())));
-        staffCode.getSelectionModel().selectFirst();
-        Optional.ofNullable(orderItem.getAmount()).ifPresentOrElse(bigDecimal ->amount.setText(bigDecimal.toPlainString()), ()->{amount.setText("");});
+        List<Supply.InnerCodeDesc> list=new SupplyDaoImpl().getInnerCodesWithDesc();
+        innerCode.setItems(FXCollections.observableArrayList(list));
+        list.forEach(innerCodeDesc -> {
+            if (innerCodeDesc.innerCode()==orderDescItem.getInnerCode()) innerCode.getSelectionModel().select(innerCodeDesc);
+        });
+        vendCode.setText(String.valueOf(orderDescItem.getVendCode()));
+        supplyDesc.setText(orderDescItem.getSupplyDesc());
+        Optional.ofNullable(orderDescItem.getPrice()).ifPresentOrElse(bigDecimal ->price.setText(bigDecimal.toPlainString()), ()->{price.setText("No");});
+        qty.setText(String.valueOf(orderDescItem.getQty()));
+        Optional.ofNullable(orderDescItem.getAmount()).ifPresentOrElse(bigDecimal ->amount.setText(bigDecimal.toPlainString()), ()->{amount.setText("No");});
         submitButton.setOnAction(actionEvent -> handleSubmitButton());
 
     }
 
 
     public void handleSubmitButton() {
-        orderItem.setOrderNum(orderNumber.getText());
-        orderItem.setSupplier(supplier.getText());
-        orderItem.setOrderDate(orderDate.getText());
-        orderItem.setStaffCode(staffCode.getSelectionModel().getSelectedItem());
-        orderItem.setAmount(amount.getText());
-        runnable.run();
+        try {
+            orderDescItem.setInnerCode(String.valueOf(innerCode.getSelectionModel().getSelectedItem().innerCode()));
+            orderDescItem.setVendCode(vendCode.getText());
+            orderDescItem.setSupplyDesc(supplyDesc.getText());
+            orderDescItem.setPrice(price.getText());
+            orderDescItem.setQty(qty.getText());
+            orderDescItem.setAmount(amount.getText());
+            runnable.run();
+        } catch (NullPointerException | IllegalArgumentException exception) {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Some field is empty");
+            alert.showAndWait();
+            runnable.run();
+        }
     }
 
 

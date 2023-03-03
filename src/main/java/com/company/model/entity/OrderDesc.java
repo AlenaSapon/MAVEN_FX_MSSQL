@@ -1,8 +1,6 @@
-package com.company.model;
+package com.company.model.entity;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.Date;
 
 public class OrderDesc extends Entity <OrderDesc.CompoundKey>{
 
