@@ -75,7 +75,7 @@ public class OrderDaoImpl implements OrderDao {
             ResultSet resultSet = statement.executeQuery();
             if(resultSet.next()){
                 order=new Order();
-                order.setSyntCode(resultSet.getInt(1));//SYNT_CODE
+                order.setSyntCode(resultSet.getInt(1));//SYNT_CODE ---EDITED comment
                 order.setOrderNum(resultSet.getInt(2));//ORDER_NUM
                 order.setSupplier(resultSet.getString(3));//SUPPLIER
                 order.setDate(resultSet.getDate(4));//ORDER_DATE
